@@ -1,0 +1,134 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Information about the student including gamification stats.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "fullName": { "type": "string" },
+        "country": { "type": "string" },
+        "province": { "type": "string" },
+        "university": { "type": "string" },
+        "fieldOfStudy": { "type": "string" },
+        "academicLevel": { "type": "string", "enum": ["Primário", "Médio", "Superior"] },
+        "xp": { "type": "integer" },
+        "level": { "type": "integer" },
+        "streak": { "type": "integer" },
+        "lastStudyDate": { "type": "string", "format": "date-time" },
+        "totalStudyMinutes": { "type": "integer" },
+        "schoolSchedule": { 
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "day": { "type": "string" },
+              "start": { "type": "string" },
+              "end": { "type": "string" },
+              "activity": { "type": "string" }
+            }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "fullName", "fieldOfStudy", "academicLevel"]
+    },
+    "Subject": {
+      "title": "Subject",
+      "description": "A field of study or discipline.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "color": { "type": "string" },
+        "themes": { 
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name"]
+    },
+    "StudySession": {
+      "title": "Study Session",
+      "description": "A record of a study session in the Mir Koringa zone.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "topic": { "type": "string" },
+        "durationMinutes": { "type": "integer" },
+        "xpGained": { "type": "integer" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["subjectId", "durationMinutes"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A study or manual task.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "completed": { "type": "boolean" },
+        "relatedStudyId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title"]
+    },
+    "Flashcard": {
+      "title": "Flashcard",
+      "description": "A study card for active recall.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "question": { "type": "string" },
+        "answer": { "type": "string" },
+        "lastReviewed": { "type": "string", "format": "date-time" },
+        "interval": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["question", "answer"]
+    },
+    "Summary": {
+      "title": "Summary",
+      "description": "A detailed summary of a study session or uploaded material.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/users/{userId}/subjects/{subjectId}": {
+      "schema": "Subject",
+      "description": "User subjects"
+    },
+    "/users/{userId}/sessions/{sessionId}": {
+      "schema": "StudySession",
+      "description": "History of study sessions"
+    },
+    "/users/{userId}/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Study tasks and homework"
+    },
+    "/users/{userId}/cards/{cardId}": {
+      "schema": "Flashcard",
+      "description": "Flashcards for the user"
+    },
+    "/users/{userId}/summaries/{summaryId}": {
+      "schema": "Summary",
+      "description": "Study summaries"
+    }
+  }
+}

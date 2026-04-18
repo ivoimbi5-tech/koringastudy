@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Primitives & Helpers ---
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function isVerified() { return request.auth.token.email_verified == true; }
+
+    // --- Validation Blueprints ---
+    
+    function isValidUser(data) {
+      return data.get('uid', '') == request.auth.uid
+        && data.get('fullName', '') is string
+        && (data.get('academicLevel', 'Médio') in ["Primário", "Médio", "Superior"]);
+    }
+
+    function isValidSubject(data) {
+      return data.name is string && data.name.size() > 0
+        && (data.get('color', '') is string)
+        && (data.get('themes', []) is list);
+    }
+
+    function isValidTask(data) {
+      return data.title is string && data.title.size() > 0
+        && data.completed is bool
+        && (data.get('feedback', '') is string);
+    }
+
+    function isValidSummary(data) {
+      return data.title is string && data.title.size() > 0
+        && data.content is string && data.content.size() > 0;
+    }
+
+    // --- Rules ---
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId)
+                     && incoming().createdAt == request.time;
+      allow update: if isOwner(userId);
+
+      match /subjects/{subjectId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidSubject(incoming())
+                       && incoming().createdAt == request.time;
+        allow update: if isOwner(userId) && isValidSubject(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      match /sessions/{sessionId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && incoming().createdAt == request.time;
+        allow delete: if isOwner(userId);
+      }
+
+      match /tasks/{taskId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidTask(incoming())
+                       && incoming().createdAt == request.time;
+        allow update: if isOwner(userId) && isValidTask(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      match /cards/{cardId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId)
+                       && incoming().createdAt == request.time;
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+
+      match /summaries/{summaryId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidSummary(incoming())
+                       && incoming().createdAt == request.time;
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}
